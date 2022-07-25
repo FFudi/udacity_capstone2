@@ -1,6 +1,7 @@
 #include "renderer.h"
 #include <iostream>
 #include <string>
+#include <sstream>
 
 Renderer::Renderer(const std::size_t screen_width,
                    const std::size_t screen_height,
@@ -38,10 +39,20 @@ Renderer::~Renderer() {
   SDL_Quit();
 }
 
-void Renderer::Render(Snake const snake, SDL_Point const &food) {
+// void Renderer::Render(Snake const snake, SDL_Point const &food, SDL_Point const &slowFood) {
+void Renderer::Render(Snake const snake, SDL_Point const &food, SDL_Point const &slowFood, SDL_Point const &obstacle) {
   SDL_Rect block;
+  SDL_Rect block_slow;
+  SDL_Rect block_obstacle;
+  
   block.w = screen_width / grid_width;
   block.h = screen_height / grid_height;
+
+  block_slow.w = screen_width / grid_width;
+  block_slow.h = screen_height / grid_height;
+
+  block_obstacle.w = screen_width / grid_width;
+  block_obstacle.h = screen_height / grid_height;
 
   // Clear screen
   SDL_SetRenderDrawColor(sdl_renderer, 0x1E, 0x1E, 0x1E, 0xFF);
@@ -52,6 +63,18 @@ void Renderer::Render(Snake const snake, SDL_Point const &food) {
   block.x = food.x * block.w;
   block.y = food.y * block.h;
   SDL_RenderFillRect(sdl_renderer, &block);
+
+  // Render slowfood
+  SDL_SetRenderDrawColor(sdl_renderer, 0x00, 0xCC, 0x00, 0xFF);
+  block_slow.x = slowFood.x * block_slow.w;
+  block_slow.y = slowFood.y * block_slow.h;
+  SDL_RenderFillRect(sdl_renderer, &block_slow);
+
+  // Render obstacle
+  SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0x00, 0x00, 0xFF);
+  block_obstacle.x = obstacle.x * block_obstacle.w;
+  block_obstacle.y = obstacle.y * block_obstacle.h;
+  SDL_RenderFillRect(sdl_renderer, &block_obstacle);
 
   // Render snake's body
   SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
@@ -75,7 +98,13 @@ void Renderer::Render(Snake const snake, SDL_Point const &food) {
   SDL_RenderPresent(sdl_renderer);
 }
 
-void Renderer::UpdateWindowTitle(int score, int fps) {
-  std::string title{"Snake Score: " + std::to_string(score) + " FPS: " + std::to_string(fps)};
+void Renderer::UpdateWindowTitle(int score, float snakeSpeed, int fps)
+{
+  std::ostringstream _speed;
+  _speed.precision(3);
+  _speed << std::fixed << snakeSpeed;
+  auto speed = _speed.str();
+
+  std::string title{"Snake Score: " + std::to_string(score) + " Snake Speed: " + speed + " FPS: " + std::to_string(fps)};
   SDL_SetWindowTitle(sdl_window, title.c_str());
 }
